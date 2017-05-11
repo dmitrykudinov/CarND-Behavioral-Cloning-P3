@@ -27,6 +27,11 @@ with open(data_folder + "driving_log.csv") as csvfile:
 images = []
 measurements = []
 
+#This model was trained on less than 17k data points (50k images) which allows to put
+#the entire dataset into physical RAM on a 16Gb desktop machine.
+#For bigger size datasets, the recommeded way to load the data in is through
+#Generators coroutine well described in 
+# https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/6df7ae49-c61c-4bb2-a23e-6527e69209ec/lessons/46a70500-493e-4057-a78e-b3075933709d/concepts/b602658e-8a68-44e5-9f0b-dfa746a0cc1a 
 for r in data:
     image = cv2.imread(img_folder + r[0])
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
