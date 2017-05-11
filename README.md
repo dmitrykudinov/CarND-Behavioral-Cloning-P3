@@ -46,9 +46,9 @@ The model.py file contains the code for training and saving the convolution neur
 
 #### 1. An appropriate model architecture has been employed
 
-My model architecure was inspired by the NVidia architecture described in https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/ and consists of five convolutional layers of 5x5 and 3x3 filter sizes, depths between 24 and 64, all with RELU activations. 
+My model architecture was inspired by the NVidia architecture described in https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/ and consists of five convolutional layers of 5x5 and 3x3 filter sizes, depths between 24 and 64, all with RELU activations. 
 
-The fully connected layers mimic the above NVidia architecture with the only difference, that I added a Droput with probability of 0.2 to prevent too much overfitting.
+The fully connected layers mimic the above NVidia architecture with the only difference, that I added a Dropout with probability of 0.2 to prevent too much overfitting.
 
 The model includes data normalization using a Keras lambda layer, where color channels are squeezed into the -16..+16 range to keep the default starting learning rate of Adam optimizer small compared to the input data. 
 
@@ -85,24 +85,24 @@ In order to gauge how well the model was working, I split my image and steering 
 
 To combat the overfitting, I modified the model so that right after the last convolutional layer result was flattened, a Dropout layer with 0.2 probability was fit in before the result goes to the fully connected layers.
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I made additional laps in the opposite direction (1 - 2 total), and specifically drove arond the problematic spots for a couple times each.
+The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I made additional laps in the opposite direction (1 - 2 total), and specifically drove around the problematic spots for a couple times each.
 
 I also used the images from the side cameras, flipped horizontally central camera, playing with the `correction` parameter values, trying to find which ones yield best loss value.
 
 Another hyper-parameter which I was tuning - clipping of the input images which was also a quite useful tool to reduce the amount of unnecessary information.
 
-During the experiments, I also played with the various settings of the Simulator Renderer quality: at some point I set the quality to "Fantastic" level and drove only one single lap in the opposite direction on the 1st track. The result was quite surpising to me: the car was able to successfully complete the lap! The only thing is that it found a legitimate shortcat through a dirt road which it took, and then successfully returned back to the track. 
+During the experiments, I also played with the various settings of the Simulator Renderer quality: at some point I set the quality to "Fantastic" level and drove only one single lap in the opposite direction on the 1st track. The result was quite surprising: the car was able to successfully complete the lap! The only thing is that it found a legitimate shortcut through a dirt road which it took, and then successfully returned back to the track. 
 Just to demonstrate this case, I am attaching the model and the mp4 file in ./success/1-dirt-road/ folder.
 
-After adding a lap driven in the "correct" direction, and a couple extra turns to the training set, the neural network was able to comple a full lap on the first track.
+After adding a lap driven in the "correct" direction, and a couple extra turns to the training set, the neural network was able to complete a full lap on the first track.
 
-"Fantastic" quality though made things worse on the secnd track: "Fantastic" adds very dark shadows casted by the mountaneous relief, which immediately throws off the model's predictions. A good option to cope with the dark shadows could be some local image normalization with a small kernel size. I didn't try it here as I could not find an easy way to do it in Keras, otherwise it would require some modifications to the drive.py so it does the same preprocessing before feeding the data into the model during inferrance...
+"Fantastic" quality though made things worse on the second track: "Fantastic" adds very dark shadows casted by the mountainous relief, which immediately throws off the model's predictions. A good option to cope with the dark shadows could be some local image normalization with a small kernel size. I didn't try it here as I could not find an easy way to do it in Keras, otherwise it would require some modifications to the drive.py so it does the same preprocessing before feeding the data into the model during inference...
 
 So, for the second track, to make the model complete the lap, I used the "Fastest" quality recommended by the course materials which doesn't have shadows drawn.
 Second track successful lap can be seen here: ./success/2/
 
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
 
