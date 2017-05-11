@@ -78,13 +78,17 @@ The overall strategy for deriving a model architecture was to start with a simpl
 
 My first step was to use a convolutional neural network model similar to the AlexNet, then VGG, then the NVidia architecture. The latter one appeared to be most promising to me because of the simplicity, speed of training, and loss on validation set.
 
+To reduce the amount of the noise coming from the upper and very bottom portions of the images, cropping was also added as the very first layer of the network.
+
+The next layer is doing the normalization of the data, squeezing the color channels into the -16..+16 range.
+
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
 To combat the overfitting, I modified the model so that right after the last convolutional layer result was flattened, a Dropout layer with 0.25 probability was fit in before the result goes to the fully connected layers.
 
 After the initial review, the suggestions were to use some additional tools to improve the model's performance:
-* SpatialDropout2D: I played with various places to insert it, but was not able to find a configuration where it would superseed the traditional Dropout on the flattened layer.
-* LeakyReLU: In another experiement, I replaced ReLU with Leaky ReLU activations throughout the entire model: Dispite the dynamic adjustment of learning rate within the Adam optimizer core, the fact that Leaky ReLU improved the performance, implies that there was a somwhat significant amount of "dead" neurons when the classical ReLUs were used.
+* SpatialDropout2D: I played with various places to insert it, but was not able to find a configuration where it would supersede the traditional Dropout on the flattened layer.
+* LeakyReLU: In another experiment, I replaced ReLU with Leaky ReLU activations throughout the entire model: Despite the dynamic adjustment of learning rate within the Adam optimizer core, the fact that Leaky ReLU improved the performance, implies that there was a somewhat significant amount of "dead" neurons when the classical ReLUs were used.
 
 With the LeakyReLUs the same model was able to perform well on both tracks!
 
@@ -95,15 +99,15 @@ The final model architecture consisted of a convolution neural network with the 
 
 | layer | size | activation |
 | --- | --- | --- |
-| Lambda | | |
 | Cropping2D | ((62,20),(0,0)) | |
+| Lambda | | |
 | Conv2D | 24x5x5 | LeakyReLU |
 | Conv2D | 36x5x5 | LeakyReLU |
 | Conv2D | 48x5x5 | LeakyReLU |
 | Conv2D | 64x3x3 | LeakyReLU |
 | Conv2D | 64x3x3 | LeakyReLU |
 | Flatten | | |
-| Dropout | 0.2 | LeakyReLU |
+| Dropout | 0.25 | LeakyReLU |
 | Dense | 1164 | LeakyReLU |
 | Dense | 100 | LeakyReLU |
 | Dense | 50 | LeakyReLU |
@@ -116,9 +120,15 @@ The final model architecture consisted of a convolution neural network with the 
 
 To capture good driving behavior, I first recorded ONE lap on EACH track using center lane driving in clockwise direction, then one more lap per each track in the counterclockwise direction.
 
-After initial training, I ran the autopilot and noted all the places where the vehicle was going off track, then drove through the problematic curves manually for a few times each in order to add them to the training datast. The problematic spots  were driven in both directions.
+After initial training, I ran the autopilot and noted all the places where the vehicle was going off track, then drove through the problematic curves manually for a few times each in order to add them to the training dataset. The problematic spots  were driven in both directions.
 
 To augment the dataset, I also flipped images and angles, and used side cameras thinking that this would increase the size of the training dataset and make the cases with fast turning better represented.
+
+![left camera](./success/left_2017_05_09_09_31_59_569.jpg)
+![center camera](./success/center_2017_05_09_09_31_59_569.jpg)
+![right camera](./success/right_2017_05_09_09_31_59_569.jpg)
+![flipped center camera](./success/flipped_2017_05_09_09_31_59_569.jpg)
+
 
 After the collection process and data augmentation, I had about 50k of data points. I finally randomly shuffled the data set and put 30% of the data into a validation set. 
 
@@ -126,6 +136,7 @@ The validation set helped determine if the model was over or under fitting. The 
 
 #### 4. Notes
 
+##### N.1.
 During the experiments, I also played with the various settings of the Simulator Renderer quality: at some point I set the quality to "Fantastic" level and drove only one single lap in the opposite direction on the 1st track. The result was quite surprising: the car was able to successfully complete the lap! The only thing is that it found a legitimate shortcut through a dirt road which it took, and then successfully returned back to the track. 
 Just to demonstrate this case, I am attaching the model and the mp4 file in ./success/1-dirt-road/ folder.
 
@@ -133,5 +144,7 @@ After adding a lap driven in the "correct" direction, and a couple extra turns t
 
 "Fantastic" quality though made things worse on the second track: "Fantastic" adds very dark shadows casted by the mountainous relief, which immediately throws off the model's predictions. A good option to cope with the dark shadows could be some local image normalization with a small kernel size. I didn't try it here as I could not find an easy way to do it in Keras, otherwise it would require some modifications to the drive.py so it does the same preprocessing before feeding the data into the model during inference...
 
-So, for the second track, to make the model complete the lap, I had to used the "Fastest" quality recommended by the course materials which doesn't have shadows drawn.
+So, for the second track, to make the model complete the lap, I had to use the "Fastest" quality recommended by the course materials which doesn't have shadows drawn.
 
+##### N.2.
+During the initial review it was noted that the color channels used in the Model.py are of BGR sequence, whereas the drive.py uses RGB. Expectation was that fixing this problem will greatly improve the performance during testing in the simulator. Surprisingly, after the bug was fixed, performance during the simulation did not change much. My guess is that this is due to a large number of convolutional layers which average the difference between R and B channels as the signal goes dipper through the filters, and also the fact that both tracks are run during the "day" time with relatively evenly "loaded" color channels.
