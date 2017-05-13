@@ -130,7 +130,7 @@ To augment the dataset, I also flipped images and angles, and used side cameras 
 ![flipped center camera](./success/flipped_2017_05_09_09_31_59_569.jpg)
 
 
-After the collection process and data augmentation, I had about 50k of data points. I finally randomly shuffled the data set and put 30% of the data into a validation set. 
+After the collection process and data augmentation, I had about 17k data points (50k images in training set). I finally randomly shuffled the data set and put 30% of the data into a validation set. 
 
 The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 3 as evidenced by stabilized validation_loss after the 3rd-4th epoch. I used an adam optimizer so that manually training the learning rate wasn't necessary.
 
