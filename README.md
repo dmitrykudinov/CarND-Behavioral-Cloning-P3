@@ -17,16 +17,11 @@ Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/4
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* ./success/1-2/model.py containing the script to create and train the model
-* ./success/1-2/drive.py for driving the car in autonomous mode
-* ./success/1-2/model.h5 containing a trained convolution neural network 
-* ./success/1-2/output.mp4 video of a successful run around BOTH track tracks with a single model
+* ./model.py containing the script to create and train the model
+* ./drive.py for driving the car in autonomous mode
+* ./model.h5 containing a trained convolution neural network 
+* ./output.mp4 video of a successful run around BOTH track tracks with a single model
 * ./README.md this writeup summarizing the results
-
-Additional model to illustrate the Notes section on image quality down below:
-* ./success/1-dirt-road/model.py
-* ./success/1-dirt-road/model.h5
-* ./success/1-dirt-road/output.mp4 video of the 1 track lap which includes portion of the dirt road shortcut
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -44,13 +39,13 @@ The model.py file contains the code for training and saving the convolution neur
 
 My model architecture was inspired by the NVidia architecture described in https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/ and consists of five convolutional layers of 5x5 and 3x3 filter sizes, depths between 24 and 64, all with Leaky-ReLU activations. 
 
-The fully connected layers mimic the above NVidia architecture with the only difference, that I added a Dropout with probability of 0.25 to prevent too much overfitting. I also tried to use the SpatialDropout2D instead / with regular Dropout but it did not benefit the prediction accuracy.
+The fully connected layers mimic the above NVidia architecture with the only difference, that I added two SpatialDropout2D with probability of 0.1 to prevent too much overfitting.
 
 The model includes data normalization using a Keras lambda layer, where color channels are squeezed into the -16..+16 range to keep the default starting learning rate of Adam optimizer small compared to the input data.
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting with probability of 0.25. 
+The model contains spatial dropout layers in order to reduce overfitting with probability of 0.1. 
 
 The model was trained and validated on different data sets to ensure that the model was not overfitting. The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
@@ -84,10 +79,10 @@ The next layer is doing the normalization of the data, squeezing the color chann
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
-To combat the overfitting, I modified the model so that right after the last convolutional layer result was flattened, a Dropout layer with 0.25 probability was fit in before the result goes to the fully connected layers.
+To combat the overfitting, I modified the model so that right after the last convolutional layer result was flattened, two SpatialDropout2D layers with 0.1 probability was fit in before the result goes to the fully connected layers.
 
 After the initial review, the suggestions were to use some additional tools to improve the model's performance:
-* SpatialDropout2D: I played with various places to insert it, but was not able to find a configuration where it would supersede the traditional Dropout on the flattened layer.
+* SpatialDropout2D: I played with various places to insert it, but was not able to find a configuration where it would supersede the traditional Dropout on the flattened layer, untill I restructured my model to use Generators. Probably, because of different batch_size, now the SpatialDropout2D started making a good difference!
 * LeakyReLU: In another experiment, I replaced ReLU with Leaky ReLU activations throughout the entire model: Despite the dynamic adjustment of learning rate within the Adam optimizer core, the fact that Leaky ReLU improved the performance, implies that there was a somewhat significant amount of "dead" neurons when the classical ReLUs were used.
 
 With the LeakyReLUs the same model was able to perform well on both tracks!
@@ -105,9 +100,10 @@ The final model architecture consisted of a convolution neural network with the 
 | Conv2D | 36x5x5 | LeakyReLU |
 | Conv2D | 48x5x5 | LeakyReLU |
 | Conv2D | 64x3x3 | LeakyReLU |
+| SpatialDropout2D | 0.1 |  |
 | Conv2D | 64x3x3 | LeakyReLU |
+| SpatialDropout2D | 0.1 |  |
 | Flatten | | |
-| Dropout | 0.25 | LeakyReLU |
 | Dense | 1164 | LeakyReLU |
 | Dense | 100 | LeakyReLU |
 | Dense | 50 | LeakyReLU |
@@ -138,7 +134,6 @@ The validation set helped determine if the model was over or under fitting. The 
 
 ##### N.1.
 During the experiments, I also played with the various settings of the Simulator Renderer quality: at some point I set the quality to "Fantastic" level and drove only one single lap in the opposite direction on the 1st track. The result was quite surprising: the car was able to successfully complete the lap! The only thing is that it found a legitimate shortcut through a dirt road which it took, and then successfully returned back to the track. 
-Just to demonstrate this case, I am attaching the model and the mp4 file in ./success/1-dirt-road/ folder.
 
 After adding a lap driven in the "correct" direction, and a couple extra turns to the training set, the neural network was able to complete a full lap on the first track.
 
