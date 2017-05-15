@@ -61,11 +61,16 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        steering_angle = float(model.predict(image_array[None, 62:140, :, :], batch_size=1))
+        cmds = model.predict(image_array[None, 62:140, :, :], batch_size=1)
 
-        throttle = controller.update(float(speed))
+        steering_angle = cmds[0,0]
+        throttle = cmds[0,1]#controller.update(float(speed))
+        br = cmds[0,2]
+        if (br > 0.5):
+            #breaking
+            throttle = -abs(throttle) * 10
 
-        print(steering_angle, throttle)
+        print(steering_angle, throttle, br)
         send_control(steering_angle, throttle)
 
         # save frame
